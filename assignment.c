@@ -32,7 +32,7 @@ const int milli = 1000;
 typedef enum { analytical, numerical } integrationMode;
 
 typedef struct {
-  bool cartesianFlag;
+	bool cartesianFlag;
   bool debug;
   bool go;
   float startTime;
@@ -44,22 +44,22 @@ typedef struct {
   float lastFrameRateT;
 } global_t;
 
-int segments = 100;
+int segments = 12;
 global_t global = { true, true, false, 0.0, numerical, true, 0, 0.0, 0.2, 0.0 };
 
 void drawAxes(float length)
 {
-  glBegin(GL_LINES);
-  glColor3f(0,1,0);
+	glBegin(GL_LINES);
+	glColor3f(0,1,0);
     glVertex3f(0,0,0);
-  glVertex3f(0,length,0);
-  glColor3f(1,0,0);
+	glVertex3f(0,length,0);
+	glColor3f(1,0,0);
     glVertex3f(0,0,0);
-  glVertex3f(length,0,0); 
-  glColor3f(0,0,1);
+	glVertex3f(length,0,0);	
+	glColor3f(0,0,1);
     glVertex3f(0,0,0);
-  glVertex3f(0,0,length);
-  glEnd();
+	glVertex3f(0,0,length);
+	glEnd();
 }
 
 void updateProjectileStateAnalytical(float t)
@@ -91,9 +91,9 @@ void updateProjectileStateNumerical(float dt)
   // Position
   projectile.r.x += projectile.v.x * dt;
   projectile.r.y += projectile.v.y * dt;
-  if (projectile.r.y < 0) {
-    projectile.r.y = 0;
-  }
+	if (projectile.r.y < 0) {
+		projectile.r.y = 0;
+	}
 
   // Velocity
   projectile.v.y += g * dt;
@@ -110,51 +110,49 @@ void updateProjectileState(float t, float dt)
 }
 
 void drawCartesianCircle(float a, float b,int segments) {
-  /* old equasion: x = a + sqrt( (2*b*y) - (b*b) + (r*r) - (y*y) ); */
-  float r = 0.05;
-  glBegin(GL_LINE_STRIP);
-  glColor3f(1,1,1);
-  float y = r,x;
-  for (int i = 0;i<=segments;i++) {
-    if (i < (segments/2) ){
-      x = a + sqrt( pow(r,2) - pow(y-b,2) );
-      glVertex3f(x,y,0);
-      y = y-(r/((float)segments/4));
-    }
-    else if ((2*i + 1) == segments) {
-      x = a + sqrt( pow(r,2) - pow(y-b,2) );
-      glVertex3f(x,y,0);
-    }
-    else {
-      x = a - sqrt( pow(r,2) - pow(y-b,2) );
-      glVertex3f(x,y,0);
-      y = y+(r/((float)segments/4));
-    }
-  }
-  
-  glEnd();
+	
+	float r = 0.05;
+	glBegin(GL_LINE_STRIP);
+	glColor3f(1,1,1);
+	float y = r,x;
+	for (int i = 0;i<=segments;i++) {
+		if (i <= (segments/2) ){
+			 x = a + sqrt( pow(r,2) - pow(y-b,2) );
+			glVertex3f(x,y,0);
+			y = y-(r/((float)segments/4));
+printf("(%f,%f) || " , x, y);
+		}
+		else {
+			x = a + sqrt( pow(r,2) - pow(y-b,2) );
+			glVertex3f(x,y,0);
+			y = y+(r/(segments/4));
+printf(" (%f,%f) || ", x, y);
+		}
+	}
+	
+	glEnd();
 }
 
 void drawParametricCircle(float x, float y, int segments) {
-  float angle,r = 0.05;
-  
-  glBegin(GL_LINE_STRIP);
-  glColor3f(1,1,1);
-  for (int i=0;i<=segments;i++) {
-    angle = (float)i/(float)segments *2*M_PI;
-    glVertex3f(x+r*cos(angle),y+r*sin(angle),0.0);
-  }
-  glEnd();
+	float angle,r = 0.05;
+	
+	glBegin(GL_LINE_STRIP);
+	glColor3f(1,1,1);
+	for (int i=0;i<=segments;i++) {
+		angle = (float)i/(float)segments *2*M_PI;
+		glVertex3f(x+r*cos(angle),y+r*sin(angle),0.0);
+	}
+	glEnd();
 
 }
 
 void drawCircle(bool cartesianFlag) {
-  if (cartesianFlag) {
-    drawCartesianCircle(projectile.r.x, projectile.r.y,segments);
-  }
-  else {
-    drawParametricCircle(projectile.r.x, projectile.r.y,segments);
-  }
+	if (cartesianFlag) {
+		drawCartesianCircle(projectile.r.x, projectile.r.y,segments);
+	}
+	else {
+		drawParametricCircle(projectile.r.x, projectile.r.y,segments);
+	}
 }
 
 
@@ -164,8 +162,8 @@ void displayProjectile(void)
   glBegin(GL_POINTS);
   glVertex2f(projectile.r.x, projectile.r.y);
   glEnd();*/
-  drawCircle(global.cartesianFlag);
-  
+	drawCircle(global.cartesianFlag);
+	
 }
 
 // Idle callback for animation
@@ -263,7 +261,7 @@ void display(void)
 
   glColor3f (0.8, 0.8, 0.8);
 
-  drawAxes(1.0);
+	drawAxes(1.0);
 
   // Display projectile
   displayProjectile();
@@ -286,21 +284,29 @@ void display(void)
 void myinit (void) 
 {
 }
+void keyboardSpecial(int key, int x,int y)
+{
+	switch (key) {
 
+	case GLUT_KEY_UP:
+    segments = 2*segments;
+    break;
+  case GLUT_KEY_DOWN:
+		if(segments >3)
+    	segments = segments/2;
+		else if(global.debug)
+			printf("Can't draw a reasonable circle with less than 3 segments");
+    break;
+	
+	default:
+    break;
+  }
+  glutPostRedisplay();
+}
 void keyboardCB(unsigned char key, int x, int y)
 {
   switch (key) {
 
-  case 38:
-    printf("pressed up");
-    segments = 2*segments;
-    segments = 2*segments;
-    break;
-  case 40:
-    printf("pressed down");
-    segments = segments/2;
-    segments = segments/2;
-    break;
   case 27:
   case 'q':
     exit(EXIT_SUCCESS);
@@ -317,15 +323,16 @@ void keyboardCB(unsigned char key, int x, int y)
   case 'o':
     global.OSD = !global.OSD;
     break;
-  case 'f':
-    global.cartesianFlag = !global.cartesianFlag;
+	case 'f':
+		global.cartesianFlag = !global.cartesianFlag;
+		break;
   case ' ':
     if (!global.go) {
       global.startTime = glutGet(GLUT_ELAPSED_TIME) / (float)milli;
       global.go = true;
     }
     break;
-  
+	
   default:
     break;
   }
@@ -354,7 +361,8 @@ int main(int argc, char** argv)
   glutInitWindowSize(400, 400);
   glutInitWindowPosition(500, 500);
   glutCreateWindow("Projectile Motion");
-  glutKeyboardFunc(keyboardCB);
+	glutKeyboardFunc(keyboardCB);
+  glutSpecialFunc(keyboardSpecial);
   glutReshapeFunc(myReshape);
   glutDisplayFunc(display);
   glutIdleFunc(update);
